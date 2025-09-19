@@ -23,7 +23,7 @@ const colorToStyle = (color: number | string, alpha = 1): string => {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
-abstract class DisplayObject {
+export abstract class DisplayObject {
   [key: string]: unknown
   x = 0
   y = 0
@@ -141,6 +141,41 @@ export class Graphics extends Container {
     }
 
     super.drawSelf(ctx)
+  }
+}
+
+export type SpriteSource = HTMLImageElement | HTMLCanvasElement
+
+export class Sprite extends DisplayObject {
+  private source: SpriteSource
+  private frame = { x: 0, y: 0, width: 0, height: 0 }
+  anchor = { x: 0.5, y: 0.5 }
+
+  constructor(source: SpriteSource) {
+    super()
+    this.source = source
+    const width = (source as { width?: number }).width ?? 0
+    const height = (source as { height?: number }).height ?? 0
+    this.frame = { x: 0, y: 0, width, height }
+  }
+
+  setFrame(x: number, y: number, width: number, height: number) {
+    this.frame = { x, y, width, height }
+  }
+
+  setAnchor(x: number, y: number) {
+    this.anchor.x = x
+    this.anchor.y = y
+  }
+
+  protected drawSelf(ctx: CanvasRenderingContext2D) {
+    const { x, y, width, height } = this.frame
+    if (!width || !height) return
+
+    const offsetX = width * this.anchor.x
+    const offsetY = height * this.anchor.y
+
+    ctx.drawImage(this.source, x, y, width, height, -offsetX, -offsetY, width, height)
   }
 }
 
